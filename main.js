@@ -75,6 +75,26 @@
       this.copy()
       this.y-=10
     }
+    hit(head,segundo=false){
+      if(this === head && !this.hasBack()) return false
+      if(this === head) return this.back.hit(head,true)
+
+      if(segundo && !this.hasBack()) return false
+      if(segundo) return this.back.hit(head)
+
+      //no es la cabeza ni el segundo
+      if(this.hasBack()){
+        return squareHit(this,head) || this.back.hit(head)
+      }
+
+      // no es la cabeza, ni el segundo, y soy el ultimo
+
+      return squareHit(this,head)
+    }
+
+    hitBorder(){
+       return this.x > 490 || this.x < 0 || this.y > 290 || this.y < 0
+    }
   }
 
   class Snake{
@@ -95,15 +115,19 @@
     }
 
     right(){
+      if(this.direction === "left") return
       this.direction = "right"
     }
     left(){
+      if(this.direction === "right") return
       this.direction = "left"
     }
     up(){
+      if(this.direction === "down") return
       this.direction = "up"
     }
     down(){
+      if(this.direction === "up") return
       this.direction = "down"
     }
     move(){
@@ -115,12 +139,20 @@
 
     eat(){
       this.head.add()
+      puntos++
+      console.log(puntos)
+    }
+
+    dead(){
+      return this.head.hit(this.head) || this.head.hitBorder() // chocar conmigo mismo
+       // chocar con los bordes
     }
   }
 
   const canvas = document.getElementById("canvas")
   const ctx = canvas.getContext("2d")
 
+  var puntos = 0
   const snake = new Snake();
   let foods = [];
 
@@ -136,12 +168,18 @@
     return false
   })
 
-  setInterval(function(){
+  const animacion = setInterval(function(){
     snake.move()
     ctx.clearRect(0,0,canvas.width,canvas.height)
     snake.draw()
     drawFood()
-  },1000 / 5)
+
+    if(snake.dead()){
+      console.log("Fin del juego")
+      window.clearInterval(animacion)
+    }
+
+  },1000 / 15) // velocidad del snake
 
   setInterval(function(){
     const food = Food.generate()
@@ -173,6 +211,10 @@
     foods = foods.filter(function(f){
       return food !== f
     })
+  }
+
+  function squareHit(cuadrado_uno,cuadrado_dos){
+    return cuadrado_uno.x == cuadrado_dos.x && cuadrado_uno.y == cuadrado_dos.y
   }
 
   function hit(a,b){ var hit = false; //Colsiones horizontales
