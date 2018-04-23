@@ -12,10 +12,12 @@
     constructor(x,y){
       this.x = x
       this.y = y
+      this.width = 10
+      this.height = 10
     }
 
     draw(){
-      ctx.fillRect(this.x,this.y, 10,10)
+      ctx.fillRect(this.x,this.y,this.width,this.height)
     }
 
     static generate(){
@@ -27,14 +29,17 @@
     constructor(x,y){
       this.x = x
       this.y = y
+      this.width = 10
+      this.height = 10
       this.back = null // cuadrado de atras
     }
 
     draw(){
+
       if(this.hasBack()){
         this.back.draw()
       }
-      ctx.fillRect(this.x,this.y,10,10)
+      ctx.fillRect(this.x,this.y,this.width,this.height)
     }
 
     add(){
@@ -107,6 +112,10 @@
       if (this.direction == "left") return this.head.left()
       if (this.direction == "right") return this.head.right()
     }
+
+    eat(){
+      this.head.add()
+    }
   }
 
   const canvas = document.getElementById("canvas")
@@ -116,8 +125,9 @@
   let foods = [];
 
   window.addEventListener("keydown", function(ev){
-    console.log(event.keyCode)
-    ev.preventDefault()
+    //console.log(event.keyCode)
+    if(ev.keyCode > 36 && ev.keyCode < 41) ev.preventDefault()
+
     if(ev.keyCode === 40) return snake.down();
     if(ev.keyCode === 38) return snake.up();
     if(ev.keyCode === 39) return snake.right();
@@ -147,7 +157,15 @@
   function drawFood(){
     for(const index in foods){
       const food = foods[index]
-      food.draw()
+      if(typeof food !== "undefined") {
+        food.draw()
+        if(hit(food, snake.head)){
+          snake.eat()
+          removeFromFoods(food)
+        }
+      }
+
+
     }
   }
 
@@ -156,5 +174,11 @@
       return food !== f
     })
   }
+
+  function hit(a,b){ var hit = false; //Colsiones horizontales
+    if(b.x + b.width >= a.x && b.x < a.x + a.width) { //Colisiones verticales
+      if(b.y + b.height >= a.y && b.y < a.y + a.height) hit = true; } //Colisión de a con b
+      if(b.x <= a.x && b.x + b.width >= a.x + a.width) { if(b.y <= a.y && b.y + b.height >= a.y + a.height) hit = true; } //Colisión b con a
+      if(a.x <= b.x && a.x + a.width >= b.x + b.width) { if(a.y <= b.y && a.y + a.height >= b.y + b.height) hit = true; } return hit; }
 
 })()
